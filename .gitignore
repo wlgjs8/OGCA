@@ -2,12 +2,12 @@
 *.pt
 *.ipynb
 *.jpg
-*.png
 *.jpeg
 *.json
 *.pickle
 *.txt
 
+SOC/
 env/
 box_annotations/
 output/
