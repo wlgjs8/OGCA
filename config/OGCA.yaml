@@ -1,0 +1,4 @@
+_BASE_: "Base-RCNN-FPN.yaml"
+MODEL:
+    META_ARCHITECTURE: "OGCA"
+    MASK_ON: True
