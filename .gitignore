@@ -6,6 +6,7 @@
 *.json
 *.pickle
 *.txt
+*.png
 
 SOC/
 env/
