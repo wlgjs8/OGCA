@@ -95,5 +95,5 @@ if __name__ == "__main__":
     parser.add_argument("--save", default='output')
 
     args = parser.parse_args()
-    main(args)
+    # main(args)
     evaluation(args)

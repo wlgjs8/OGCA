@@ -53,8 +53,10 @@ class OGCA(nn.Module):
 
         if self.training:
             losses = {}
+            
             losses.update({k: v for k, v in detector_losses.items()})
             losses.update(proposal_losses)
+            losses.update()
 
             return losses
 

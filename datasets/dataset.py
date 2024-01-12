@@ -12,7 +12,8 @@ class_names = [
 def register_dataset(name, metadata, image_root, gt_image_root, instance_gt_image_root, instance_gt_class_root):
     DatasetCatalog.register(
         name,
-        lambda: utils.get_soc_instances_dicts(image_root, gt_image_root, instance_gt_image_root, instance_gt_class_root)
+        # lambda: utils.get_soc_instances_dicts(image_root, gt_image_root, instance_gt_image_root, instance_gt_class_root)
+        lambda: utils.get_sod_dicts(image_root, gt_image_root)
     )
     MetadataCatalog.get(name).set(
         image_root=image_root,
@@ -45,3 +46,19 @@ def init_dataset(args):
 
         register_dataset(train_name, metadata, image_root, gt_image_root, instance_gt_image_root, instance_gt_class_root)
         register_dataset(val_name, metadata, val_image_root, val_gt_image_root, val_instance_gt_image_root, val_instance_gt_class_root)
+
+    elif args.data == 'duts':
+        args.data = 'DUTS'
+        image_root = dataset_root + args.data + '/DUTS-TR' + '/DUTS-TR-Image/'
+        gt_image_root = dataset_root + args.data + '/DUTS-TR' + '/DUTS-TR-Mask/'
+
+        val_image_root = dataset_root + args.data + '/DUTS-TE' + '/DUTS-TE-Image/'
+        val_gt_image_root = dataset_root + args.data + '/DUTS-TE' + '/DUTS-TE-Mask/'
+
+        train_name = 'coco_train_DUTS'
+        val_name = 'coco_val_DUTS'
+        metadata = {}
+
+        register_dataset(train_name, metadata, image_root, gt_image_root, None, None)
+        register_dataset(val_name, metadata, val_image_root, val_gt_image_root, None, None)
+        

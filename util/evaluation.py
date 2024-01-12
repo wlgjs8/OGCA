@@ -12,6 +12,7 @@ def evaluation(args):
     SM = M.Smeasure()
     EM = M.Emeasure()
     MAE = M.MAE()
+    AFM = M.AvgFmeasure()
 
     method = args.method
     dataset = args.dataset
@@ -38,12 +39,14 @@ def evaluation(args):
         SM.step(pred=pred, gt=gt)
         EM.step(pred=pred, gt=gt)
         MAE.step(pred=pred, gt=gt)
+        AFM.step(pred=pred, gt=gt)
 
     fm = FM.get_results()['fm']
     wfm = WFM.get_results()['wfm']
     sm = SM.get_results()['sm']
     em = EM.get_results()['em']
     mae = MAE.get_results()['mae']
+    afm = AFM.get_results()['avg_fm']
 
     print(
         'Method:', args.method, ',',
@@ -57,7 +60,8 @@ def evaluation(args):
         'maxEm:', '-' if em['curve'] is None else em['curve'].max().round(3), '; ',
         'adpFm:', fm['adp'].round(3), '; ',
         'meanFm:', fm['curve'].mean().round(3), '; ',
-        'maxFm:', fm['curve'].max().round(3),
+        'maxFm:', fm['curve'].max().round(3), '; ',
+        'avgFm:', afm['avg_fm'].mean().round(3),
         sep=''
     )
 

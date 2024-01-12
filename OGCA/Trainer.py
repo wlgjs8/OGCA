@@ -1,6 +1,7 @@
 import logging
 import os
 from collections import OrderedDict
+import pickle
 
 import torch
 from detectron2.checkpoint import DetectionCheckpointer
@@ -397,16 +398,18 @@ class SOCEvaluator(DatasetEvaluator):
             if "instances" in output:
                 instances = output["instances"].to(self._cpu_device)
                 prediction["instances"] = instances
-
+            
             if len(prediction) > 1:
                 self._predictions.append(prediction)
+            # with open('{}.pickle'.format(prediction['image_id'][:-4]), 'wb') as fw:
+            #     pickle.dump(prediction, fw)
 
     def evaluate(self):
         predictions = self._predictions
 
-        if len(predictions) == 0:
-            self._logger.warning("[COCOEvaluator] Did not receive valid predictions.")
-            return {}
+        # if len(predictions) == 0:
+        #     self._logger.warning("[COCOEvaluator] Did not receive valid predictions.")
+        #     return {}
 
         self._results = OrderedDict()
         self._eval_mask_predictions(predictions)
@@ -415,6 +418,7 @@ class SOCEvaluator(DatasetEvaluator):
 
     def _eval_mask_predictions(self, predictions):
         gt_root = os.path.abspath('/workspace/GLCA_SOC/datasets/SOC/ValSet/gt')
+        # gt_root = os.path.abspath('/home/jeeheon/Documents/OGCA/datasets/DUTS/DUTS-TE/DUTS-TE-Mask')
         gt_name_list = sorted(os.listdir(gt_root))
 
         FM = M.Fmeasure()
@@ -466,9 +470,12 @@ class SOCEvaluator(DatasetEvaluator):
         storage.put_scalar('Smeasure', self._results['SoC']['Smeasure'])
         storage.put_scalar('wFmeasure', self._results['SoC']['wFmeasure'])
 
-    def search_pred(self, search_image_name, predictions):
+    def search_pred(self, search_image_name, predictions=None):
         for each_dict in predictions:
             if each_dict['image_id'] == search_image_name:
                 return each_dict['instances'].pred_masks.numpy()
 
+        # with open(search_image_name[:-3] + 'pickle', 'rb') as fr:
+        #     each_dict = pickle.load(fr)
+        # return each_dict['instances'].pred_masks.numpy()
         return None

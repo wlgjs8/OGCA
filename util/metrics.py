@@ -1,3 +1,4 @@
+from nntplib import NNTP_PORT
 import numpy as np
 from scipy.ndimage import convolve, distance_transform_edt as bwdist
 
@@ -30,6 +31,7 @@ class Fmeasure(object):
         self.adaptive_fms.append(adaptive_fm)
 
         precisions, recalls, changeable_fms = self.cal_pr(pred=pred, gt=gt)
+
         self.precisions.append(precisions)
         self.recalls.append(recalls)
         self.changeable_fms.append(changeable_fms)
@@ -69,9 +71,48 @@ class Fmeasure(object):
         changeable_fm = np.mean(np.array(self.changeable_fms, dtype=_TYPE), axis=0)
         precision = np.mean(np.array(self.precisions, dtype=_TYPE), axis=0)  # N, 256
         recall = np.mean(np.array(self.recalls, dtype=_TYPE), axis=0)  # N, 256
+
         return dict(fm=dict(adp=adaptive_fm, curve=changeable_fm),
                     pr=dict(p=precision, r=recall))
 
+class AvgFmeasure(object):
+    def __init__(self, beta: float = 0.3):
+        self.avg_fmeasure = 0.0
+        self.avg_precision = 0.0
+        self.avg_recall = 0.0
+        self.image_num = 0.0
+        self.beta = beta
+        self.avg_fms = []
+
+    def step(self, pred: np.ndarray, gt: np.ndarray) -> tuple:
+        # pred = (pred * 255).astype(np.uint8)
+        # pred = (pred - np.min(pred)) / (np.max(pred) -
+        #                                                np.min(pred) + _EPS)
+        pred, gt = _prepare_data(pred, gt)
+        prec, recall = self._eval_pr(pred, gt, 255)
+        beta2 = self.beta
+        f_score = (1 + beta2) * prec * recall / (beta2 * prec + recall)
+        f_score[f_score != f_score] = 0  # for Nan
+
+        self.avg_fms.append(f_score)
+
+    def get_results(self) -> dict:
+        avg_fm = np.mean(np.array(self.avg_fms, dtype=_TYPE), axis=0)
+
+        return dict(
+                    avg_fm=dict(avg_fm=avg_fm)
+                    )
+
+    def _eval_pr(self, pred: np.ndarray, gt: np.ndarray, num=255) -> tuple:
+        prec, recall = np.zeros(num), np.zeros(num)
+        thlist = np.linspace(0, 1 - 1e-10, num)
+
+        for i in range(num):
+            y_temp = (pred >= thlist[i])
+            tp = (y_temp * gt).sum()
+            prec[i], recall[i] = tp / (y_temp.sum() + 1e-20), tp / (gt.sum() +
+                                                                    1e-20)
+        return prec, recall
 
 class MAE(object):
     def __init__(self):

@@ -98,6 +98,56 @@ def get_soc_instances_dicts(image_root, gt_image_root, instance_gt_image_root, i
     print("Loading Instances Data Complete!!!")
     return dataset_dicts
 
+def get_sod_dicts(image_root, gt_image_root):
+    print("\n")
+    print("Loading Instances Data ...")
+
+    dataset_dicts = []
+
+    file_names = os.listdir(image_root)
+    # instance_file_names = os.listdir(instance_gt_class_root)
+
+    for file_name in file_names:
+        image_name = file_name[:-4]
+        txt_file_name = image_name + '.txt'
+
+        im_path = image_root + file_name
+        width, height = Image.open(im_path).size
+
+        gt_path = gt_image_root + file_name[:-3] + 'png'
+
+        objs = []
+        record = {}
+        record["file_name"] = im_path
+        record["image_id"] = file_name
+        record["height"] = height
+        record["width"] = width
+        
+        record["gt_file_name"] = gt_path
+        # record["instance_gt_file_name"] = instance_gt_path
+        record["annotations"] = objs
+
+        try:
+            with open('box_annotations/{}.json'.format(image_name), 'r') as f:
+                annos = json.load(f)
+            for anno in annos['objects']:
+                obj = {
+                    'area' : anno['area'],
+                    'bbox' : anno['bbox'],
+                    'bbox_mode': BoxMode.XYXY_ABS,
+                    'segmentation' : anno['polygons'],
+                    "category_id": 0,
+                    "iscrowd": 0,
+                }
+                objs.append(obj)
+            dataset_dicts.append(record)
+
+        except Exception as e:
+            continue
+        
+    print("Loading Instances Data Complete!!!")
+    return dataset_dicts
+
 def refine_boxes(boxes):
     delete_box = []
     final_box = []
